@@ -40,13 +40,11 @@ app.post('/register', (req, res) => {
     }
     bcrypt.hash(password, 10, (err, hashedPassword) => {
         if (err) {
-            console.error('Error hashing password:', err);
             res.status(500).json({ message: 'Internal server error' });
             return;
         }
         db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
             if (err) {
-                console.error('Error checking email:', err);
                 res.status(500).json({ message: 'Internal server error' });
                 return;
             }
@@ -56,7 +54,6 @@ app.post('/register', (req, res) => {
             }
             db.query('INSERT INTO users (email, password) VALUES (?, ?)', [email, hashedPassword], (err) => {
                 if (err) {
-                    console.error('Error registering user:', err);
                     res.status(500).json({ message: 'Internal server error' });
                     return;
                 }
@@ -74,7 +71,6 @@ app.post('/login', (req, res) => {
   }
   db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
       if (err) {
-          console.error('Error checking email:', err);
           res.status(500).json({ message: 'Internal server error' });
           return;
       }
@@ -85,7 +81,6 @@ app.post('/login', (req, res) => {
       const user = results[0];
       bcrypt.compare(password, user.password, (err, result) => {
           if (err) {
-              console.error('Error comparing passwords:', err);
               res.status(500).json({ message: 'Internal server error' });
               return;
           }
@@ -108,8 +103,7 @@ function authenticateToken(req, res, next) {
   }
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) {
-      console.error('Error verifying token:', err);
-      res.status(403).json({ message: 'Forbidden' });
+      res.status(403).json({ message: 'Invalid Token' });
       return;
     }
     req.user = user;
@@ -127,7 +121,6 @@ app.post('/order', authenticateToken, (req, res) => {
 
   db.query('SELECT * FROM products WHERE name = ?', [name], (err, results) => {
     if (err) {
-      console.error('Error getting product details:', err);
       res.status(500).json({ message: 'Internal server error' });
       return;
     }
@@ -144,7 +137,6 @@ app.post('/order', authenticateToken, (req, res) => {
     
     db.query('UPDATE products SET available_stock = ? WHERE name = ?', [product.available_stock - available_stock, name], (err) => {
       if (err) {
-        console.error('Error updating product stock:', err);
         res.status(500).json({ message: 'Internal server error' });
         return;
       }
